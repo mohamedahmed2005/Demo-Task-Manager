@@ -164,33 +164,8 @@ public:
             memoryStr = clean_memory_from_string(memoryStr);
             pro.emplace_back(name, pid, memoryStr, session_name, session_id);
         }
+        ifs.close();
     }
-
-    void sortByMemoryUsage() {
-        cout << "Sort from smaller memory usage or bigger memory usage" << endl;
-        string choice = validation();
-        if (choice == "1") {
-            // Sort by memory in bytes first, and by memory string length second (if necessary)
-            sort(pro.begin(), pro.end(),
-                [](const process& a, const process& b) {
-                    if (a.getMemoryInBytes() == b.getMemoryInBytes()) {
-                        return a.getMemoryStringLength() < b.getMemoryStringLength(); // Compare by string length if memory sizes are equal
-                    }
-                    return a.getMemoryInBytes() < b.getMemoryInBytes();
-                });
-        }
-        else if (choice == "2") {
-            // Sort in reverse order: by memory in bytes first, and by memory string length second (if necessary)
-            sort(pro.rbegin(), pro.rend(),
-                [](const process& a, const process& b) {
-                    if (a.getMemoryInBytes() == b.getMemoryInBytes()) {
-                        return a.getMemoryStringLength() < b.getMemoryStringLength(); // Compare by string length if memory sizes are equal
-                    }
-                    return a.getMemoryInBytes() < b.getMemoryInBytes();
-                });
-        }
-    }
-
     void displayProcesses() const {
         cout << setw(25) << left << "Process Name"
              << setw(30) << "PID"
@@ -215,10 +190,21 @@ public:
         }
         return choice;
     }
-
+    string validation_string() {
+        cout << "1, smaller (a->z)" << endl;
+        cout << "2, bigger (z->a)" << endl;
+        string choice;
+        cin >> choice;
+        while (choice != "1" && choice != "2") {
+            cout << "Please enter 1 or 2: ";
+            cin.clear();
+            cin >> choice;
+        }
+        return choice;
+    }
     void sortByName() {
         cout << "Sort from first smaller character or bigger character" << endl;
-        string choice = validation();
+        string choice = validation_string();
         if (choice == "1") {
             sort(pro.begin(), pro.end(),
                 [](const process& a, const process& b) { return a.getName() < b.getName(); });
@@ -241,6 +227,33 @@ public:
                 [](const process& a, const process& b) { return a.getPid() < b.getPid(); });
         }
     }
+    void sortByMemoryUsage(bool ascending) {
+        cout << "Sorting by memory usage." << endl;
+
+        sort(pro.begin(), pro.end(),
+            [ascending](const process& a, const process& b) {
+                if (a.getMemoryInBytes() == b.getMemoryInBytes()) {
+                    return ascending ? a.getMemoryStringLength() < b.getMemoryStringLength()
+                                     : a.getMemoryStringLength() > b.getMemoryStringLength();
+                }
+                return ascending ? a.getMemoryInBytes() < b.getMemoryInBytes()
+                                 : a.getMemoryInBytes() > b.getMemoryInBytes();
+            });
+    }
+
+    void userSortByMemoryUsage() {
+        cout << "Sort from smaller memory usage or bigger memory usage (1 for smaller, 2 for bigger)" << endl;
+        string choice = validation();
+
+        // Call sortByMemoryUsage with appropriate flag for sorting order
+        if (choice == "1") {
+            sortByMemoryUsage(true);  // Ascending order
+        } else if (choice == "2") {
+            sortByMemoryUsage(false);  // Descending order
+        }
+    }
+
+
 };
 
 void men() {
@@ -257,9 +270,9 @@ string menu() {
     men();
     string choice;
     cin >> choice;
-    while (choice < "1" || choice > "5") {
-        cin.clear();
-        cout << "Invalid choice" << endl;
+    while (choice < "1" || choice > "5" || choice.length() != 1 || !isdigit(choice[0])) {
+        cin.clear(); // Clear the error flag
+        cout << "Invalid choice. Please enter a number between 1 and 5." << endl;
         men();
         cin >> choice;
     }
@@ -297,7 +310,7 @@ void men_main() {
             ps.displayProcesses();
         }
         else if (menu_choice == "4") {
-            ps.sortByMemoryUsage();
+            ps.userSortByMemoryUsage();
             ps.displayProcesses();
         }
         else if (menu_choice == "5") {
@@ -314,7 +327,6 @@ void men_main() {
         }
     }
 }
-
 int main() {
     men_main();
     return 0;
