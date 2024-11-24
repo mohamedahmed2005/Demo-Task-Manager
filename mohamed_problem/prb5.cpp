@@ -58,29 +58,43 @@ public:
     }
 
 private:
-    long long convertMemoryToBytes(const string& memoryStr) {
+    long long convertMemoryToBytes(const std::string& memoryStr) {
         long long memory = 0;
-        string mem = memoryStr;
-        mem.erase(remove(mem.begin(), mem.end(), '"'), mem.end()); // Remove quotes
-        mem.erase(remove(mem.begin(), mem.end(), ' '), mem.end()); // Remove spaces
-        mem.erase(remove(mem.begin(), mem.end(), ','), mem.end()); // Remove commas
+        std::string mem = memoryStr;
+
+        // Remove quotes, spaces, and commas
+        mem.erase(remove(mem.begin(), mem.end(), '"'), mem.end());
+        mem.erase(remove(mem.begin(), mem.end(), ' '), mem.end());
+        mem.erase(remove(mem.begin(), mem.end(), ','), mem.end());
+
+        if (mem.empty()) {
+            throw std::invalid_argument("Input string is empty or invalid");
+        }
 
         // Find unit (KB, MB, GB, etc.)
-        if (mem.find("KB") != string::npos) {
-            mem.erase(mem.find("KB"), 2); // Remove "KB"
-            memory = stoll(mem) * 1024; // Convert KB to bytes
+        if (mem.find("KB") != std::string::npos) {
+            mem.erase(mem.find("KB"), 2);  // Remove "KB"
+            memory = std::stoll(mem) * 1024;  // Convert KB to bytes
         }
-        else if (mem.find("MB") != string::npos) {
-            mem.erase(mem.find("MB"), 2); // Remove "MB"
-            memory = stoll(mem) * 1024 * 1024; // Convert MB to bytes
+        else if (mem.find("MB") != std::string::npos) {
+            mem.erase(mem.find("MB"), 2);  // Remove "MB"
+            memory = std::stoll(mem) * 1024 * 1024;  // Convert MB to bytes
         }
-        else if (mem.find("GB") != string::npos) {
-            mem.erase(mem.find("GB"), 2); // Remove "GB"
-            memory = stoll(mem) * 1024 * 1024 * 1024; // Convert GB to bytes
-        } else {
-            // If no unit, assume bytes
-            memory = stoll(mem);
+        else if (mem.find("GB") != std::string::npos) {
+            mem.erase(mem.find("GB"), 2);  // Remove "GB"
+            memory = std::stoll(mem) * 1024 * 1024 * 1024;  // Convert GB to bytes
         }
+        else {
+            // If no unit is found, treat the input as bytes
+            try {
+                memory = std::stoll(mem);  // Convert string directly to bytes
+            } catch (const std::invalid_argument& e) {
+                throw std::invalid_argument("Invalid number format: " + mem);
+            } catch (const std::out_of_range& e) {
+                throw std::out_of_range("Number out of range: " + mem);
+            }
+        }
+
         return memory;
     }
 };
@@ -292,7 +306,7 @@ void men_main() {
         }
         string x = sub_menu();
         if(x=="1") {
-            men_main();
+            continue;
         }
         else if (x=="2") {
             cout << "Thank you for using this program :)" << endl;
