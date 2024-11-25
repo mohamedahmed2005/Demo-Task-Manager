@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <cctype>
-
+#include<limits>
 using namespace std;
 
 class process {
@@ -318,14 +318,17 @@ string menus::menu() {
     menus::men();
     string choice;
     cin >> choice;
-    while (choice < "1" || choice > "5" || choice.length() != 1 || !isdigit(choice[0])) {
+
+    while (choice.length() != 1 || !isdigit(choice[0]) || choice < "1" || choice > "5") {
         cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear the input buffer
         cout << "Invalid choice. Please enter a number between 1 and 5." << endl;
-        menus::menu();
+        menus::men(); // Re-display the menu
         cin >> choice;
     }
     return choice;
 }
+
 string menus::sub_menu() {
     cout << "\033[95m";
     cout<<"Do you want to continue"<<endl;
